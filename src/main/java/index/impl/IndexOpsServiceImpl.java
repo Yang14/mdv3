@@ -10,7 +10,6 @@ import index.common.CommonModuleImpl;
 import index.model.MdIndex;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
-import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +77,8 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
     }
 
     private boolean isDirExist(long pCode, String dirName) {
-        return datastore.createQuery(MdIndex.class)
+        return MdIndexCacheTool.isMdIndexInMap(pCode, dirName) ||
+                datastore.createQuery(MdIndex.class)
                 .filter("pCode = ", pCode)
                 .filter("fName = ", dirName).get() != null;
     }
@@ -133,6 +133,7 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
         MdIndex mdIndex = getMdIndexByPath(path);
         delDirHashBucket(mdIndex);
         deleteDirByMdIndex(mdIndex);
+        MdIndexCacheTool.clearMdIndexInMap();
         return true;
     }
 
@@ -141,6 +142,7 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
                 .field("pCode").equal(mdIndex.getfCode()).fetch();
         for (MdIndex subIndex : subMdIndexes) {
             delDirHashBucket(subIndex);
+            MdIndexCacheTool.removeMdIndexToMap(mdIndex.getfCode(), mdIndex.getfName());
             deleteDirByMdIndex(subIndex);
         }
     }
