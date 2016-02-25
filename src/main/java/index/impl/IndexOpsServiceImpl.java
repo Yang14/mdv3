@@ -68,26 +68,12 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
     @Override
     public MdPos createDirIndex(String parentPath, String dirName) throws RemoteException {
         MdIndex parentIndex = getMdIndexByPath(parentPath);
-/*
         if (isDirExist(parentIndex.getfCode(), dirName)){
             return null;
         }
         MdIndex dirIndex = genDirIndex(parentIndex.getfCode(), dirName,
                 commonModule.genFCode(), commonModule.genDCode());
         datastore.save(dirIndex);
-
-*/
-        long fCode = commonModule.genFCode();
-        long dCode = commonModule.genDCode();
-        Query query = datastore.createQuery(MdIndex.class);
-        UpdateOperations<MdIndex> ops = datastore.createUpdateOperations(MdIndex.class);
-        ops.set("pCode", parentIndex.getpCode());
-        ops.set("fName", dirName);
-        ops.set("fCode", fCode);
-        List<Long> dCodes = new ArrayList<Long>();
-        dCodes.add(dCode);
-        ops.set("dCodeList", dCodes);
-        datastore.updateFirst(query, ops, true);
         return getMdAttrPos(parentIndex);
     }
 
