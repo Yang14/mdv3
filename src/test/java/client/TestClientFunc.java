@@ -47,7 +47,7 @@ public class TestClientFunc {
             System.out.println(mdAttr);
         }
         System.out.println("start del.");
-        clientService.deleteDir("/a191");
+        //clientService.deleteDir("/a191");
         System.out.println("del ok.");
         mdAttrs = clientService.listDir("/a191");
         for (MdAttr mdAttr : mdAttrs) {
