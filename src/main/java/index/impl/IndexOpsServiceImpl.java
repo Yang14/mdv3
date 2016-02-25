@@ -10,6 +10,7 @@ import index.common.CommonModuleImpl;
 import index.model.MdIndex;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,16 +68,30 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
     @Override
     public MdPos createDirIndex(String parentPath, String dirName) throws RemoteException {
         MdIndex parentIndex = getMdIndexByPath(parentPath);
+/*
         if (isDirExist(parentIndex.getfCode(), dirName)){
             return null;
         }
         MdIndex dirIndex = genDirIndex(parentIndex.getfCode(), dirName,
                 commonModule.genFCode(), commonModule.genDCode());
         datastore.save(dirIndex);
+
+*/
+        long fCode = commonModule.genFCode();
+        long dCode = commonModule.genDCode();
+        Query query = datastore.createQuery(MdIndex.class);
+        UpdateOperations<MdIndex> ops = datastore.createUpdateOperations(MdIndex.class);
+        ops.set("pCode", parentIndex.getpCode());
+        ops.set("fName", dirName);
+        ops.set("fCode", fCode);
+        List<Long> dCodes = new ArrayList<Long>();
+        dCodes.add(dCode);
+        ops.set("dCodeList", dCodes);
+        datastore.updateFirst(query, ops, true);
         return getMdAttrPos(parentIndex);
     }
 
-    private boolean isDirExist(long pCode, String dirName){
+    private boolean isDirExist(long pCode, String dirName) {
         return datastore.createQuery(MdIndex.class)
                 .filter("pCode = ", pCode)
                 .filter("fName = ", dirName).get() != null;
@@ -123,7 +138,7 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
                 .filter("fName = ", oldName).get();
         UpdateOperations<MdIndex> ops = datastore.createUpdateOperations(MdIndex.class);
         ops.set("fName", newName);
-        datastore.update(dirIndex, ops).getUpdatedExisting();
+        datastore.update(dirIndex, ops);
         return commonModule.buildMdPosList(parentIndex.getdCodeList());
     }
 
@@ -144,10 +159,10 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
         }
     }
 
-    private void delDirHashBucket(MdIndex mdIndex){
+    private void delDirHashBucket(MdIndex mdIndex) {
         datastore.delete(mdIndex.getId());
         List<MdPos> mdPoses = commonModule.buildMdPosList(mdIndex.getdCodeList());
-        for (MdPos mdPos : mdPoses){
+        for (MdPos mdPos : mdPoses) {
             ssdbDao.deleteDirMd(mdPos);
         }
     }
