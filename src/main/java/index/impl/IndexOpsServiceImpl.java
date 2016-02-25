@@ -73,6 +73,12 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
         return getMdAttrPos(parentIndex);
     }
 
+    private boolean checkDirExist(long pCode,String dirName){
+        return datastore.createQuery(MdIndex.class)
+                .filter("pCode = ", pCode)
+                .filter("fName = ", dirName).get() != null;
+    }
+
     private MdPos getMdAttrPos(MdIndex parentIndex) {
         List<Long> dCodeList = parentIndex.getdCodeList();
         long dCode = dCodeList.get(dCodeList.size() - 1);
