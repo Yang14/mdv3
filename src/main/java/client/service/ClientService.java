@@ -22,4 +22,11 @@ public interface ClientService {
     public boolean renameDir(String parentDirPath, String oldName, String newName) throws RemoteException;
 
     public boolean renameFile(String parentDirPath, String oldName, String newName) throws RemoteException;
+
+    //TODO
+    public boolean deleteDir(String dirPath) throws RemoteException;
+
+    //TODO
+    public boolean deleteFile(String parentDirPath, String fileName) throws RemoteException;
+
 }

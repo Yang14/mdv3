@@ -1,10 +1,11 @@
 package client.service.impl;
 
+import base.api.IndexOpsService;
 import base.md.MdAttr;
 import base.md.MdPos;
-import base.api.IndexOpsService;
 import client.service.ClientService;
-import client.service.dao.SSDBImpl;
+import client.service.dao.SSDBDao;
+import client.service.dao.SSDBDaoImpl;
 import client.service.tool.ConnTool;
 import client.service.tool.MdPosCacheTool;
 import org.slf4j.Logger;
@@ -21,12 +22,13 @@ public class ClientServiceImpl implements ClientService {
     private static Logger logger = LoggerFactory.getLogger("ClientServiceImpl");
     private static IndexOpsService indexOps = ConnTool.getIndexOpsService();
 
-    private static SSDBImpl ssdbService = new SSDBImpl();
+    private static SSDBDao ssdbService = new SSDBDaoImpl();
+
     @Override
     public boolean createFileMd(String parentDirPath, String fileName, MdAttr mdAttr) throws RemoteException {
         MdPosCacheTool.removeMdPosList(parentDirPath);
         MdPos mdPos = indexOps.getMdPosForCreateFile(parentDirPath);
-        return ssdbService.insertMd(mdPos,fileName,mdAttr);
+        return ssdbService.insertMd(mdPos, fileName, mdAttr);
     }
 
     @Override
@@ -81,6 +83,24 @@ public class ClientServiceImpl implements ClientService {
         boolean renameResult = false;
         for (MdPos mdPos : mdPosList) {
             renameResult = ssdbService.renameMd(mdPos, oldName, newName);
+            if (renameResult) {
+                break;
+            }
+        }
+        return renameResult;
+    }
+
+    @Override
+    public boolean deleteDir(String dirPath) throws RemoteException {
+        return indexOps.deleteDir(dirPath);
+    }
+
+    @Override
+    public boolean deleteFile(String parentDirPath, String fileName) throws RemoteException {
+        List<MdPos> mdPosList = getMdPosListByPath(parentDirPath);
+        boolean renameResult = false;
+        for (MdPos mdPos : mdPosList) {
+            renameResult = ssdbService.deleteMd(mdPos, fileName);
             if (renameResult) {
                 break;
             }

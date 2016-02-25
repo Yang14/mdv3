@@ -2,6 +2,8 @@ package index.impl;
 
 import base.api.IndexOpsService;
 import base.md.MdPos;
+import client.service.dao.SSDBDao;
+import client.service.dao.SSDBDaoImpl;
 import com.mongodb.MongoClient;
 import index.common.CommonModule;
 import index.common.CommonModuleImpl;
@@ -27,11 +29,13 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
 
     private CommonModule commonModule = new CommonModuleImpl();
 
+    private SSDBDao ssdbDao = new SSDBDaoImpl();
+
     private Datastore datastore;
 
     public IndexOpsServiceImpl() throws RemoteException {
         super();
-        MongoClient mongo = new MongoClient();
+        MongoClient mongo = new MongoClient("192.168.0.13", 27017);
         Morphia morphia = new Morphia();
         morphia.mapPackage("index.model");
         datastore = morphia.createDatastore(mongo, "mdIndexManager");
@@ -112,6 +116,26 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
         ops.set("fName", newName);
         datastore.update(dirIndex, ops).getUpdatedExisting();
         return commonModule.buildMdPosList(parentIndex.getdCodeList());
+    }
+
+    @Override
+    public boolean deleteDir(String path) throws RemoteException {
+        MdIndex mdIndex = getMdIndexByPath(path);
+        deleteDirByMdIndex(mdIndex);
+        return true;
+    }
+
+    private boolean deleteDirByMdIndex(MdIndex mdIndex) {
+        Iterable<MdIndex> subMdIndexes = datastore.createQuery(MdIndex.class)
+                .field("pCode").equal(mdIndex.getfCode()).fetch();
+        for (MdIndex subIndex : subMdIndexes) {
+            List<MdPos> mdPoses = commonModule.buildMdPosList(subIndex.getdCodeList());
+            for (MdPos mdPos : mdPoses){
+                ssdbDao.deleteDirMd(mdPos);
+            }
+            deleteDirByMdIndex(subIndex);
+        }
+        return true;
     }
 
     public String[] splitPath(String path) {

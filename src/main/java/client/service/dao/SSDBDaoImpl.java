@@ -16,8 +16,8 @@ import java.util.Map;
 /**
  * Created by Mr-yang on 16-2-23.
  */
-public class SSDBImpl {
-    private static Logger logger = LoggerFactory.getLogger("SSDBImpl");
+public class SSDBDaoImpl implements SSDBDao {
+    private static Logger logger = LoggerFactory.getLogger("SSDBDaoImpl");
 
     public boolean insertMd(MdPos mdPos, String name, MdAttr mdAttr) {
         SSDB ssdb = ConnTool.getSSDB(mdPos);
@@ -56,6 +56,18 @@ public class SSDBImpl {
         ssdb.hdel(dCode, oldName);
         response = ssdb.hset(dCode, newName, JSON.toJSONString(mdAttr));
         return response.ok();
+    }
+
+    public boolean deleteMd(MdPos mdPos, String name) {
+        SSDB ssdb = ConnTool.getSSDB(mdPos);
+        long dCode = mdPos.getdCode();
+        return !ssdb.hdel(dCode, name).notFound();
+    }
+
+    @Override
+    public boolean deleteDirMd(MdPos mdPos) {
+        SSDB ssdb = ConnTool.getSSDB(mdPos);
+        return ssdb.hclear(mdPos.getdCode()).ok();
     }
 
 }

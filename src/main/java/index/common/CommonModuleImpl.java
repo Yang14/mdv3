@@ -1,7 +1,7 @@
 package index.common;
 
-import base.PortEnum;
 import base.md.MdPos;
+import base.tool.PortEnum;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,11 +12,11 @@ import java.util.Random;
  */
 public class CommonModuleImpl implements CommonModule {
 
-    private static long fileCode = 100000;
+    private static Random random = new Random(Long.MAX_VALUE);
 
     @Override
     public long genFCode() {
-        return fileCode++;
+        return random.nextLong();
     }
 
     @Override
