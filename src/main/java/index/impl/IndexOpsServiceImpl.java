@@ -68,7 +68,7 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
     @Override
     public MdPos createDirIndex(String parentPath, String dirName) throws RemoteException {
         MdIndex parentIndex = getMdIndexByPath(parentPath);
-        if (isDirExist(parentIndex.getfCode(), dirName)){
+        if (isDirExist(parentIndex.getfCode(), dirName)) {
             return null;
         }
         MdIndex dirIndex = genDirIndex(parentIndex.getfCode(), dirName,
@@ -146,7 +146,7 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
     }
 
     private void delDirHashBucket(MdIndex mdIndex) {
-        datastore.delete(mdIndex.getId());
+        datastore.delete(datastore.createQuery(MdIndex.class).field("id").equal(mdIndex.getId()));
         List<MdPos> mdPoses = commonModule.buildMdPosList(mdIndex.getdCodeList());
         for (MdPos mdPos : mdPoses) {
             ssdbDao.deleteDirMd(mdPos);
