@@ -121,21 +121,25 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
     @Override
     public boolean deleteDir(String path) throws RemoteException {
         MdIndex mdIndex = getMdIndexByPath(path);
+        delDirHashBucket(mdIndex);
         deleteDirByMdIndex(mdIndex);
         return true;
     }
 
-    private boolean deleteDirByMdIndex(MdIndex mdIndex) {
+    private void deleteDirByMdIndex(MdIndex mdIndex) {
         Iterable<MdIndex> subMdIndexes = datastore.createQuery(MdIndex.class)
                 .field("pCode").equal(mdIndex.getfCode()).fetch();
         for (MdIndex subIndex : subMdIndexes) {
-            List<MdPos> mdPoses = commonModule.buildMdPosList(subIndex.getdCodeList());
-            for (MdPos mdPos : mdPoses){
-                ssdbDao.deleteDirMd(mdPos);
-            }
+            delDirHashBucket(subIndex);
             deleteDirByMdIndex(subIndex);
         }
-        return true;
+    }
+
+    private void delDirHashBucket(MdIndex mdIndex){
+        List<MdPos> mdPoses = commonModule.buildMdPosList(mdIndex.getdCodeList());
+        for (MdPos mdPos : mdPoses){
+            ssdbDao.deleteDirMd(mdPos);
+        }
     }
 
     public String[] splitPath(String path) {
