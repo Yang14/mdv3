@@ -40,7 +40,20 @@ public class TestClientFunc {
         clientService.createDirMd("/a1/b", "c", getMdAttr("c", 789, true));
         List<MdAttr> mdAttrs = clientService.listDir("/" + dirName);
         for (MdAttr mdAttr : mdAttrs) {
-            System.out.println(mdAttr.getName() + "-" + mdAttr.getType());
+            System.out.println(mdAttr);
+        }
+        mdAttrs = clientService.listDir("/a1/b");
+        for (MdAttr mdAttr : mdAttrs) {
+            System.out.println(mdAttr);
+        }
+        clientService.deleteDir("/a1");
+        mdAttrs = clientService.listDir("/a1");
+        for (MdAttr mdAttr : mdAttrs) {
+            System.out.println(mdAttr);
+        }
+        mdAttrs = clientService.listDir("/a1/b");
+        for (MdAttr mdAttr : mdAttrs) {
+            System.out.println(mdAttr);
         }
     }
 
