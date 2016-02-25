@@ -34,26 +34,26 @@ public class TestClientFunc {
 
     @Test
     public void testListDir() throws RemoteException {
-        String dirName = "a19";
+        String dirName = "a191";
         clientService.createDirMd("/", dirName, getMdAttr(dirName, 789, true));
-        clientService.createDirMd("/a19", "b", getMdAttr("b", 789, true));
-        clientService.createDirMd("/a19/b", "c", getMdAttr("c", 789, true));
+        clientService.createDirMd("/a191", "b", getMdAttr("b", 789, true));
+        clientService.createDirMd("/a191/b", "c", getMdAttr("c", 789, true));
         List<MdAttr> mdAttrs = clientService.listDir("/" + dirName);
         for (MdAttr mdAttr : mdAttrs) {
             System.out.println(mdAttr);
         }
-        mdAttrs = clientService.listDir("/a19/b");
+        mdAttrs = clientService.listDir("/a191/b");
         for (MdAttr mdAttr : mdAttrs) {
             System.out.println(mdAttr);
         }
         System.out.println("start del.");
-        clientService.deleteDir("/a19");
+        clientService.deleteDir("/a191");
         System.out.println("del ok.");
-        mdAttrs = clientService.listDir("/a19");
+        mdAttrs = clientService.listDir("/a191");
         for (MdAttr mdAttr : mdAttrs) {
             System.out.println(mdAttr);
         }
-        mdAttrs = clientService.listDir("/a19/b");
+        mdAttrs = clientService.listDir("/a191/b");
         for (MdAttr mdAttr : mdAttrs) {
             System.out.println(mdAttr);
         }

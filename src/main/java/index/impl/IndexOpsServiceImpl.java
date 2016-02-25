@@ -145,6 +145,7 @@ public class IndexOpsServiceImpl extends UnicastRemoteObject implements IndexOps
     }
 
     private void delDirHashBucket(MdIndex mdIndex){
+        datastore.delete(mdIndex.getId());
         List<MdPos> mdPoses = commonModule.buildMdPosList(mdIndex.getdCodeList());
         for (MdPos mdPos : mdPoses){
             ssdbDao.deleteDirMd(mdPos);
