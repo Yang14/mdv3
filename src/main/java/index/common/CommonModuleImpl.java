@@ -21,7 +21,7 @@ public class CommonModuleImpl implements CommonModule {
 
     @Override
     public long genDCode() {
-        return Long.valueOf(new Random().nextInt() & 0x0FFFFFFFF);
+        return (long) (new Random().nextInt());
     }
 
     @Override
@@ -33,13 +33,12 @@ public class CommonModuleImpl implements CommonModule {
     public MdPos buildMdPos(long dCode) {
         MdPos md = new MdPos();
         if (dCode % 3 == 0) {
-            md.setIp("node-03");
+            md.setIp("192.168.0.58");
         } else if (dCode % 2 == 0) {
-            md.setIp("node-02");
+            md.setIp("192.168.0.12");
         } else {
-            md.setIp("node-01");
+            md.setIp("192.168.0.13");
         }
-        md.setIp("192.168.0.13");
         md.setdCode(dCode);
         md.setPort(PortEnum.SSDB_PORT);
         return md;
