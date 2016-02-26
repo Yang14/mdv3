@@ -21,7 +21,7 @@ public class TestClientMulti {
 
     private ClientService clientService = new ClientServiceImpl();
 
-    private int threadCount = 4;
+    private int threadCount = 64;
     private int count = 10000;
     private CountDownLatch latchCreate = new CountDownLatch(threadCount);
     private CountDownLatch latchFind = new CountDownLatch(threadCount);
@@ -62,16 +62,27 @@ public class TestClientMulti {
         clientService.createDirMd("/d1/d2/d3", "d4", getMdAttr("d4", 4, true));
         clientService.createDirMd("/d1/d2/d3/d4", "d5", getMdAttr("d5", 5, true));
         clientService.createDirMd("/d1/d2/d3/d4/d5", "d6", getMdAttr("d6", 5, true));
-        testBuildDirTreePerform();
+        //testBuildDirTreePerform();
         List<String> threadNameList = new ArrayList<String>();
+        String[] name = new String[threadCount];
         for (int i = 0; i < threadCount; i++) {
             String threadName = "t" + i;
             clientService.createDirMd("/", threadName, getMdAttr(threadName, 5, true));
             clientService.createFileMd("/", threadName + "-forFile", getMdAttr(threadName + "-forFile", 99, false));
-            threadNameList.add(threadName);
+            name[i] = threadName;
         }
-        threadNameArray = (String[]) threadNameList.toArray();
+        threadNameArray = name;
     }
+
+    @Test
+    public void testClearMd() throws InterruptedException, RemoteException {
+        long start = System.currentTimeMillis();
+        clientService.deleteDir("/");
+        long end = System.currentTimeMillis();
+        logger.info(String.format("delete ok, thread count is %s time: %s",
+                 (end - start)));
+    }
+
 
     @Test
     public void testMultiCreate() throws InterruptedException, RemoteException {
@@ -101,12 +112,12 @@ public class TestClientMulti {
     @Test
     public void testCreatePerform() throws RemoteException {
         String parentPath = Thread.currentThread().getName();
-        buildSubDir(parentPath);
+        buildSubDir("/"+parentPath);
     }
 
     @Test
     public void testFindPerform() throws RemoteException {
-        buildSubFile(Thread.currentThread().getName() + "-forFile");
+        buildSubFile("/"+Thread.currentThread().getName() + "-forFile");
     }
 
     private void buildSubDir(String parentDir) throws RemoteException {
