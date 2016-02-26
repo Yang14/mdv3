@@ -30,30 +30,6 @@ public class TestClientMulti {
 
     private String[] threadNameArray;
 
-    class CreateMd implements Runnable {
-        @Override
-        public void run() {
-            try {
-                testCreatePerform();
-                latchCreate.countDown();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    class FindMd implements Runnable {
-        @Override
-        public void run() {
-            try {
-                testCreatePerform();
-                latchFind.countDown();
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     @Before
     public void setUp() throws RemoteException {
         clientService.createDirMd("/", "d1", getMdAttr("d1", 1, true));
@@ -75,38 +51,74 @@ public class TestClientMulti {
 
     @Test
     public void testMultiCreate() throws InterruptedException, RemoteException {
+        testMultiCreateDir();
+        latchForOps.countDown();
+        testMultiCreateFile();
+    }
+
+    public void testMultiCreateDir() throws InterruptedException, RemoteException {
+        Runnable run = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    buildSubDir(Thread.currentThread().getName());
+                    latchCreate.countDown();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
         long start = System.currentTimeMillis();
         for (int i = 0; i < threadCount; ++i) {
-            new Thread(new CreateMd(), threadNameArray[i]).start();
+            new Thread(run, threadNameArray[i]).start();
         }
         latchCreate.await();
         long end = System.currentTimeMillis();
         logger.info(String.format("create ok, thread count is %s time: %s", threadCount, (end - start)));
         latchForOps.countDown();
-        testMultiFind();
     }
-
-    @Test
-    public void testMultiFind() throws InterruptedException, RemoteException {
+    public void testMultiCreateFile() throws InterruptedException, RemoteException {
         latchForOps.await();
+        Runnable run = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    buildSubFile(Thread.currentThread().getName() + "-forFile");
+                    latchCreate.countDown();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
         long start = System.currentTimeMillis();
         for (int i = 0; i < threadCount; ++i) {
-            new Thread(new FindMd(), threadNameArray[i]).start();
+            new Thread(run, threadNameArray[i]).start();
         }
         latchFind.await();
         long end = System.currentTimeMillis();
         logger.info(String.format("find ok, thread count is %s time: %s", threadCount, (end - start)));
     }
 
-    @Test
-    public void testCreatePerform() throws RemoteException {
-        String parentPath = Thread.currentThread().getName();
-        buildSubDir(parentPath);
-    }
-
-    @Test
-    public void testFindPerform() throws RemoteException {
-        buildSubFile(Thread.currentThread().getName() + "-forFile");
+    public void testMultiFindFile() throws InterruptedException, RemoteException {
+        latchForOps.await();
+        Runnable run = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    buildSubFile(Thread.currentThread().getName() + "-forFile");
+                    latchCreate.countDown();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < threadCount; ++i) {
+            new Thread(run, threadNameArray[i]).start();
+        }
+        latchFind.await();
+        long end = System.currentTimeMillis();
+        logger.info(String.format("find ok, thread count is %s time: %s", threadCount, (end - start)));
     }
 
     private void buildSubDir(String parentDir) throws RemoteException {
@@ -121,6 +133,12 @@ public class TestClientMulti {
         }
     }
 
+    private void findSubFile(String parentDir) throws RemoteException {
+        for (int i = 0; i < count; i++) {
+            clientService.findFileMd(parentDir, "file" + i);
+        }
+    }
+
     public void buildDirTree(String dir) throws RemoteException {
         long start = System.currentTimeMillis();
         String secondDir = dir;
@@ -129,18 +147,6 @@ public class TestClientMulti {
         }
         long end = System.currentTimeMillis();
         logger.info(String.format("time: %s", (end - start)));
-
-        String thirdDir = "foo";
-        String thirdFile = "a.t";
-        end = System.currentTimeMillis();
-        for (int i = 0; i < 100; i++) {
-            for (int j = 0; j < 100; j++) {
-                clientService.createDirMd("/" + secondDir + i, thirdDir + j, getMdAttr(thirdDir + j, i, true));
-                clientService.createFileMd("/" + secondDir + i, thirdFile + j, getMdAttr(thirdFile + j, i, false));
-            }
-        }
-        long end2 = System.currentTimeMillis();
-        logger.info(String.format("time: %s", (end2 - end)));
     }
 
     public void testBuildDirTreePerform() throws RemoteException {
@@ -148,15 +154,6 @@ public class TestClientMulti {
         for (int i = 0; i < 1; i++) {
             buildDirTree(dirName + i);
         }
-    }
-
-    public void testListDirTree(String dirName) throws RemoteException {
-        System.out.println(clientService.listDir(dirName));
-    }
-
-    @Test
-    public void testListDir() throws RemoteException {
-
     }
 
     private MdAttr getMdAttr(String name, int size, boolean isDir) {
